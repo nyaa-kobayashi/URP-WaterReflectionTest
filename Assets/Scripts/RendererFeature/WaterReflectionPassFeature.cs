@@ -1,3 +1,10 @@
+//
+// WaterReflectionPassFeature.cs
+// Unity 2020.3.48f1にも対応（元はUnity 2022.xまで）
+// オリジナルは、https://github.com/rngtm/URP-WaterReflectionTest
+// 解説ブログ： https://zenn.dev/r_ngtm/articles/urp-water-reflection
+//
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
@@ -74,7 +81,11 @@ public class WaterReflectionPassFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var src = RenderTargetIdentifiers._CameraReflectionTexture;
-            var dst = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            # if UNITY_2021_3_OR_NEWER //Unity 2022.3.22f1で動作確認
+                var dst = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            #else //Unity 2020.3.48f1対応
+                var dst = renderingData.cameraData.renderer.cameraColorTarget;
+            #endif
             var cmd = CommandBufferPool.Get(nameof(MergeReflectionPass));
             cmd.Blit(src, dst);
             context.ExecuteCommandBuffer(cmd);
@@ -132,7 +143,13 @@ public class WaterReflectionPassFeature : ScriptableRendererFeature
             
             // 確保したRenderTextureを解放
             cmd.ReleaseTemporaryRT(ShaderPropertyIDs._CameraReflectionTexture);
-            
+            #if UNITY_2021_3_OR_NEWER //Unity 2022.3.22f1で動作確認
+                //特になにもしない。
+            #else //Unity 2020.3.48f1対応
+                // Set the global shader parameter
+                RenderTexture renderTexture = RTHandlePool._CameraReflectionTexture.rt;
+                Shader.SetGlobalTexture(ShaderPropertyIDs._CameraReflectionTexture, renderTexture);
+            #endif
             RTHandles.Release(RTHandlePool._CameraReflectionTexture);
         }
         
@@ -213,8 +230,11 @@ public class WaterReflectionPassFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        RTHandles.Initialize(Screen.width, Screen.height);
-        
+        #if UNITY_2021_3_OR_NEWER //Unity 2022.3.22f1で動作確認
+            RTHandles.Initialize(Screen.width, Screen.height);
+        #else  //Unity 2020.3.48f1対応
+            RTHandles.Initialize(Screen.width, Screen.height, false, MSAASamples.None);
+        #endif
         // Render Pass 作成
         _renderObjectPass = new RenderReflectionObjectPass();
         _renderObjectPass.Settings = settings;
