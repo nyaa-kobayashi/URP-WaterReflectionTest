@@ -81,7 +81,7 @@ public class WaterReflectionPassFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var src = RenderTargetIdentifiers._CameraReflectionTexture;
-            # if UNITY_2021_3_OR_NEWER //Unity 2022.3.22f1で動作確認
+            # if UNITY_2022_3_OR_NEWER //Unity 2022.3.22f1で動作確認
                 var dst = renderingData.cameraData.renderer.cameraColorTargetHandle;
             #else //Unity 2020.3.48f1対応
                 var dst = renderingData.cameraData.renderer.cameraColorTarget;
@@ -143,7 +143,7 @@ public class WaterReflectionPassFeature : ScriptableRendererFeature
             
             // 確保したRenderTextureを解放
             cmd.ReleaseTemporaryRT(ShaderPropertyIDs._CameraReflectionTexture);
-            #if UNITY_2021_3_OR_NEWER //Unity 2022.3.22f1で動作確認
+            #if UNITY_2022_3_OR_NEWER //Unity 2022.3.22f1で動作確認
                 //特になにもしない。
             #else //Unity 2020.3.48f1対応
                 // Set the global shader parameter
